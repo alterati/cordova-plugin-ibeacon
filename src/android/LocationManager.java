@@ -77,6 +77,8 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 
     public static final String TAG = "com.unarin.beacon";
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
+    private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
+    private static final int PERMISSION_REQUEST_BACKGROUND_LOCATION = 2;
     private static final String FOREGROUND_BETWEEN_SCAN_PERIOD_NAME = "com.unarin.cordova.beacon.android.altbeacon.ForegroundBetweenScanPeriod";
     private static final String FOREGROUND_SCAN_PERIOD_NAME = "com.unarin.cordova.beacon.android.altbeacon.ForegroundScanPeriod";
     private static final int DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD = 0;
@@ -167,10 +169,122 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 
         final boolean requestPermission = this.preferences.getBoolean(
                 REQUEST_BT_PERMISSION_NAME, DEFAULT_REQUEST_BT_PERMISSION);
-           
+
         if(requestPermission)
               tryToRequestMarshmallowLocationPermission();
     }
+
+//    private void requestPermissions() {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            if (this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+//                    == PackageManager.PERMISSION_GRANTED) {
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//                    if (this.checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+//                            != PackageManager.PERMISSION_GRANTED) {
+//                        if (!this.shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
+//                            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//                            builder.setTitle("This app needs background location access");
+//                            builder.setMessage("Please grant location access so this app can detect beacons in the background.");
+//                            builder.setPositiveButton(android.R.string.ok, null);
+//                            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+//
+//                                @TargetApi(23)
+//                                @Override
+//                                public void onDismiss(DialogInterface dialog) {
+//                                    requestPermissions(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+//                                            PERMISSION_REQUEST_BACKGROUND_LOCATION);
+//                                }
+//
+//                            });
+//                            builder.show();
+//                        }
+//                        else {
+//                            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//                            builder.setTitle("Functionality limited");
+//                            builder.setMessage("Since background location access has not been granted, this app will not be able to discover beacons in the background.  Please go to Settings -> Applications -> Permissions and grant background location access to this app.");
+//                            builder.setPositiveButton(android.R.string.ok, null);
+//                            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+//
+//                                @Override
+//                                public void onDismiss(DialogInterface dialog) {
+//                                }
+//
+//                            });
+//                            builder.show();
+//                        }
+//                    }
+//                }
+//            } else {
+//                if (!this.shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+//                    requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+//                                    Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+//                            PERMISSION_REQUEST_FINE_LOCATION);
+//                }
+//                else {
+//                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//                    builder.setTitle("Functionality limited");
+//                    builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons.  Please go to Settings -> Applications -> Permissions and grant location access to this app.");
+//                    builder.setPositiveButton(android.R.string.ok, null);
+//                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+//
+//                        @Override
+//                        public void onDismiss(DialogInterface dialog) {
+//                        }
+//
+//                    });
+//                    builder.show();
+//                }
+//
+//            }
+//        }
+//    }
+//
+//
+//
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode,
+//                                           String permissions[], int[] grantResults) {
+//        switch (requestCode) {
+//            case PERMISSION_REQUEST_FINE_LOCATION: {
+//                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    Log.d(TAG, "fine location permission granted");
+//                } else {
+//                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//                    builder.setTitle("Functionality limited");
+//                    builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons.");
+//                    builder.setPositiveButton(android.R.string.ok, null);
+//                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+//
+//                        @Override
+//                        public void onDismiss(DialogInterface dialog) {
+//                        }
+//
+//                    });
+//                    builder.show();
+//                }
+//                return;
+//            }
+//            case PERMISSION_REQUEST_BACKGROUND_LOCATION: {
+//                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    Log.d(TAG, "background location permission granted");
+//                } else {
+//                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//                    builder.setTitle("Functionality limited");
+//                    builder.setMessage("Since background location access has not been granted, this app will not be able to discover beacons when in the background.");
+//                    builder.setPositiveButton(android.R.string.ok, null);
+//                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+//
+//                        @Override
+//                        public void onDismiss(DialogInterface dialog) {
+//                        }
+//
+//                    });
+//                    builder.show();
+//                }
+//                return;
+//            }
+//        }
+//    }
 
     /**
      * The final call you receive before your activity is destroyed.
@@ -310,38 +424,12 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
             final Method requestPermissionsMethod = getRequestPermissionsMethod();
 
             if (requestPermissionsMethod == null) {
-                Log.e(TAG, "Could not obtain the method Activity.requestPermissions. Will " +
+                Log.e(TAG, "Could not obtain the method Activity.                        . Will " +
                         "not ask for ACCESS_COARSE_LOCATION even though we seem to be on a " +
                         "supported version of Android.");
                 return;
             }
-
-            final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-            builder.setTitle("This app needs location access");
-            builder.setMessage("Please grant location access so this app can detect beacons.");
-            builder.setPositiveButton(android.R.string.ok, null);
-            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @SuppressLint("NewApi")
-                @Override
-                public void onDismiss(final DialogInterface dialog) {
-
-                    try {
-                        requestPermissionsMethod.invoke(activity,
-                                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                                PERMISSION_REQUEST_COARSE_LOCATION
-                        );
-                    } catch (IllegalAccessException e) {
-                        Log.e(TAG, "IllegalAccessException while requesting permission for " +
-                                "ACCESS_COARSE_LOCATION:", e);
-                    } catch (InvocationTargetException e) {
-                        Log.e(TAG, "InvocationTargetException while requesting permission for " +
-                                "ACCESS_COARSE_LOCATION:", e);
-                    }
-                }
-            });
-
-            builder.show();
-
+            requestPermissionsMethod.invoke(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION);
         } catch (final IllegalAccessException e) {
             Log.w(TAG, "IllegalAccessException while checking for ACCESS_COARSE_LOCATION:", e);
         } catch (final InvocationTargetException e) {
@@ -388,22 +476,22 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
     private void initBluetoothListener() {
 
         //check access
-        if (!hasBlueToothPermission()) {
-            debugWarn("Cannot listen to Bluetooth service when BLUETOOTH permission is not added");
-            return;
-        }
-
+//        if (!hasBlueToothPermission()) {
+//            debugWarn("Cannot listen to Bluetooth service when BLUETOOTH permission is not added");
+//            return;
+//        }
+verifyBluetooth();
         //check device support
-        try {
-            iBeaconManager.checkAvailability();
-        } catch (BleNotAvailableException e) {
-            //if device does not support iBeacons this error is thrown
-            debugWarn("Cannot listen to Bluetooth service: " + e.getMessage());
-            return;
-        } catch (Exception e) {
-            debugWarn("Unexpected exception checking for Bluetooth service: " + e.getMessage());
-            return;
-        }
+//        try {
+//            iBeaconManager.checkAvailability();
+//        } catch (BleNotAvailableException e) {
+//            //if device does not support iBeacons this error is thrown
+//            debugWarn("Cannot listen to Bluetooth service: " + e.getMessage());
+//            return;
+//        } catch (Exception e) {
+//            debugWarn("Unexpected exception checking for Bluetooth service: " + e.getMessage());
+//            return;
+//        }
 
         if (broadcastReceiver != null) {
             debugWarn("Already listening to Bluetooth service, not adding again");
@@ -1178,7 +1266,7 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
         debugLog("Advertisement start START BEACON ");
         debugLog(args.toString(4));
         /*
-        Advertisement start START BEACON 
+        Advertisement start START BEACON
             [
                 {
                     "identifier": "beaconAsMesh",
@@ -1191,7 +1279,7 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
                 7
             ]
         */
-        
+
         JSONObject arguments = args.optJSONObject(0); // get first object
         String identifier = arguments.getString("identifier");
 
@@ -1200,7 +1288,7 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
         final String major = arguments.has("major") && !arguments.isNull("major") ? arguments.getString("major") : null;
         final String minor = arguments.has("minor") && !arguments.isNull("minor") ? arguments.getString("minor") : null;
 
-        // optinal second member in JSONArray is just a number 
+        // optinal second member in JSONArray is just a number
         final int measuredPower = args.length() > 1 ? args.getInt(1) : -55;
 
         if (major == null && minor != null)
@@ -1450,6 +1538,41 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
         int adminAccess = context.checkCallingOrSelfPermission(Manifest.permission.BLUETOOTH_ADMIN);
 
         return (access == PackageManager.PERMISSION_GRANTED) && (adminAccess == PackageManager.PERMISSION_GRANTED);
+    }
+
+    private void verifyBluetooth() {
+        try {
+            if (!BeaconManager.getInstanceForApplication(cordova.getActivity()).checkAvailability()) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(cordova.getContext());
+                builder.setTitle("Bluetooth not enabled");
+                builder.setMessage("Please enable bluetooth in settings and restart this application.");
+                builder.setPositiveButton(android.R.string.ok, null);
+                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+//                        finishAffinity();
+                    }
+                });
+                builder.show();
+            }
+        }
+        catch (RuntimeException e) {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(cordova.getContext());
+            builder.setTitle("Bluetooth LE not available");
+            builder.setMessage("Sorry, this device does not support Bluetooth LE.");
+            builder.setPositiveButton(android.R.string.ok, null);
+            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+//                    finishAffinity();
+                }
+
+            });
+            builder.show();
+
+        }
+
     }
 
     //////// Async Task Handling ////////////////////////////////
