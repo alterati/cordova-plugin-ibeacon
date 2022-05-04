@@ -166,12 +166,11 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
             initBluetoothAdapter();
         }
         //TODO AddObserver when page loaded
-
         final boolean requestPermission = this.preferences.getBoolean(
                 REQUEST_BT_PERMISSION_NAME, DEFAULT_REQUEST_BT_PERMISSION);
 
-        if(requestPermission)
-              tryToRequestMarshmallowLocationPermission();
+//        if(requestPermission)
+
     }
 
 //    private void requestPermissions() {
@@ -1075,6 +1074,9 @@ verifyBluetooth();
 
             @Override
             public PluginResult run() {
+
+                tryToRequestMarshmallowLocationPermission();
+
                 return new PluginResult(PluginResult.Status.OK);
             }
         });
@@ -1085,7 +1087,10 @@ verifyBluetooth();
 
             @Override
             public PluginResult run() {
-                return new PluginResult(PluginResult.Status.OK);
+
+                tryToRequestMarshmallowLocationPermission();
+
+                    return new PluginResult(PluginResult.Status.OK);
             }
         });
     }
