@@ -428,7 +428,8 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
                         "supported version of Android.");
                 return;
             }
-            requestPermissionsMethod.invoke(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION);
+//            requestPermissionsMethod.invoke(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION);
+            requestPermissionsMethod.invoke(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION);
         } catch (final IllegalAccessException e) {
             Log.w(TAG, "IllegalAccessException while checking for ACCESS_COARSE_LOCATION:", e);
         } catch (final InvocationTargetException e) {
