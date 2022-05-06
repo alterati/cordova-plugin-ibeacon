@@ -44,6 +44,7 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 
 import org.altbeacon.beacon.BeaconTransmitter;
+
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseSettings;
 
@@ -78,6 +79,7 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
     public static final String TAG = "com.unarin.beacon";
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
     private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
+    private static final int PERMISSION_REQUEST_BLUETOOTH_SCAN = 1;
     private static final int PERMISSION_REQUEST_BACKGROUND_LOCATION = 2;
     private static final String FOREGROUND_BETWEEN_SCAN_PERIOD_NAME = "com.unarin.cordova.beacon.android.altbeacon.ForegroundBetweenScanPeriod";
     private static final String FOREGROUND_SCAN_PERIOD_NAME = "com.unarin.cordova.beacon.android.altbeacon.ForegroundScanPeriod";
@@ -145,12 +147,11 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
         final boolean enableArmaFilter = this.preferences.getBoolean(
                 ENABLE_ARMA_FILTER_NAME, DEFAULT_ENABLE_ARMA_FILTER);
 
-        if(enableArmaFilter){
-               iBeaconManager.setRssiFilterImplClass(ArmaRssiFilter.class);
-        }
-        else{
-               iBeaconManager.setRssiFilterImplClass(RunningAverageRssiFilter.class);
-               RunningAverageRssiFilter.setSampleExpirationMilliseconds(sampleExpirationMilliseconds);
+        if (enableArmaFilter) {
+            iBeaconManager.setRssiFilterImplClass(ArmaRssiFilter.class);
+        } else {
+            iBeaconManager.setRssiFilterImplClass(RunningAverageRssiFilter.class);
+            RunningAverageRssiFilter.setSampleExpirationMilliseconds(sampleExpirationMilliseconds);
         }
         RangedBeacon.setSampleExpirationMilliseconds(sampleExpirationMilliseconds);
 
@@ -380,7 +381,7 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
     private BeaconTransmitter createOrGetBeaconTransmitter() {
         if (this.beaconTransmitter == null) {
             final BeaconParser beaconParser = new BeaconParser()
-                .setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24");
+                    .setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24");
 
             this.beaconTransmitter = new BeaconTransmitter(getApplicationContext(), beaconParser);
         }
@@ -429,7 +430,58 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
                 return;
             }
 //            requestPermissionsMethod.invoke(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION);
-            requestPermissionsMethod.invoke(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION);
+            int currentapiVersion = android.os.Build.VERSION.SDK_INT;
+
+
+            if (currentapiVersion >= 31) {
+                // Do something for android 12 and above
+                final AlertDialog.Builder builder = new AlertDialog.Builder(cordova.getContext());
+                builder.setTitle("STEP FuturAbility District");
+                builder.setMessage("Abbiamo bisogno di scansionare i beacon per guidarti nell'esperienza.");
+                builder.setPositiveButton(android.R.string.ok, null);
+                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                    @TargetApi(23)
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        try {
+
+                            requestPermissionsMethod.invoke(activity, new String[]{Manifest.permission.BLUETOOTH_SCAN}, PERMISSION_REQUEST_BLUETOOTH_SCAN);
+                        } catch (Exception e) {
+
+                        }
+                    }
+
+                });
+                builder.show();
+
+
+            } else {
+                requestPermissionsMethod.invoke(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION);
+                final AlertDialog.Builder builder = new AlertDialog.Builder(cordova.getContext());
+                builder.setTitle("STEP FuturAbility District");
+                builder.setMessage("Abbiamo bisogno della posizione per guidarti nell'esperienza.");
+                builder.setPositiveButton(android.R.string.ok, null);
+                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                    @TargetApi(23)
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        try {
+                            requestPermissionsMethod.invoke(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION);
+                        } catch (Exception e) {
+
+                        }
+
+                    }
+
+                });
+                builder.show();
+
+                // do something for phones running an SDK before 14
+
+            }
+
         } catch (final IllegalAccessException e) {
             Log.w(TAG, "IllegalAccessException while checking for ACCESS_COARSE_LOCATION:", e);
         } catch (final InvocationTargetException e) {
@@ -480,7 +532,7 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 //            debugWarn("Cannot listen to Bluetooth service when BLUETOOTH permission is not added");
 //            return;
 //        }
-verifyBluetooth();
+        verifyBluetooth();
         //check device support
 //        try {
 //            iBeaconManager.checkAvailability();
@@ -1091,7 +1143,7 @@ verifyBluetooth();
 
                 tryToRequestMarshmallowLocationPermission();
 
-                    return new PluginResult(PluginResult.Status.OK);
+                return new PluginResult(PluginResult.Status.OK);
             }
         });
     }
@@ -1241,7 +1293,7 @@ verifyBluetooth();
                     PluginResult result = new PluginResult(PluginResult.Status.OK, true);
                     result.setKeepCallback(true);
                     return result;
-                }else{
+                } else {
                     PluginResult result = new PluginResult(PluginResult.Status.OK, false);
                     result.setKeepCallback(true);
                     return result;
@@ -1311,9 +1363,9 @@ verifyBluetooth();
                         .setId3(minor) // Minor for beacon
                         .setManufacturer(0x004C) // Radius Networks.0x0118  Change this for other beacon layouts//0x004C for iPhone
                         .setTxPower(measuredPower) // Power in dB
-                        .setDataFields(Arrays.asList(new Long[] {0l})) // Remove this for beacon layouts without d: fields
+                        .setDataFields(Arrays.asList(new Long[]{0l})) // Remove this for beacon layouts without d: fields
                         .build();
-                debugLog("[DEBUG] Beacon.Builder: "+beacon);
+                debugLog("[DEBUG] Beacon.Builder: " + beacon);
                 /*
                 Beacon beacon = new Beacon.Builder()
                         .setId1("00000000-2016-0000-0000-000000000000") // UUID for beacon
@@ -1329,12 +1381,12 @@ verifyBluetooth();
                 debugLog("Advertisement start STEP BeaconTransmitter ");
                 final BeaconTransmitter beaconTransmitter = LocationManager.this.createOrGetBeaconTransmitter();
 
-                debugLog("[DEBUG] BeaconTransmitter: "+beaconTransmitter);
+                debugLog("[DEBUG] BeaconTransmitter: " + beaconTransmitter);
                 beaconTransmitter.startAdvertising(beacon, new AdvertiseCallback() {
 
                     @Override
                     public void onStartFailure(int errorCode) {
-                        debugWarn("Advertisement start failed with code: "+errorCode);
+                        debugWarn("Advertisement start failed with code: " + errorCode);
                     }
 
                     @Override
@@ -1561,8 +1613,7 @@ verifyBluetooth();
                 });
                 builder.show();
             }
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             final AlertDialog.Builder builder = new AlertDialog.Builder(cordova.getContext());
             builder.setTitle("Bluetooth LE not available");
             builder.setMessage("Sorry, this device does not support Bluetooth LE.");
@@ -1646,6 +1697,7 @@ verifyBluetooth();
             Log.i(TAG, message);
         }
     }
+
     private void debugLog(String message) {
         if (debugEnabled) {
             Log.d(TAG, message);
