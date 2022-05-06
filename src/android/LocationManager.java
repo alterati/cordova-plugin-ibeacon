@@ -430,57 +430,56 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
                 return;
             }
 //            requestPermissionsMethod.invoke(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION);
-            int currentapiVersion = android.os.Build.VERSION.SDK_INT;
+
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(cordova.getContext());
+                    builder.setTitle("STEP FuturAbility District");
+
+                    if (Build.VERSION.SDK_INT >= 31) {
+                        // Do something for android 12 and above
+                        builder.setMessage("Abbiamo bisogno di scansionare i beacon per guidarti nell'esperienza.");
+                        builder.setPositiveButton(android.R.string.ok, null);
+                        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                            @TargetApi(23)
+                            @Override
+                            public void onDismiss(DialogInterface dialog) {
+                                try {
+
+                                    requestPermissionsMethod.invoke(activity, new String[]{Manifest.permission.BLUETOOTH_SCAN}, PERMISSION_REQUEST_BLUETOOTH_SCAN);
+                                } catch (Exception e) {
+
+                                }
+                            }
+
+                        });
 
 
-            if (currentapiVersion >= 31) {
-                // Do something for android 12 and above
-                final AlertDialog.Builder builder = new AlertDialog.Builder(cordova.getContext());
-                builder.setTitle("STEP FuturAbility District");
-                builder.setMessage("Abbiamo bisogno di scansionare i beacon per guidarti nell'esperienza.");
-                builder.setPositiveButton(android.R.string.ok, null);
-                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    } else {
+//                requestPermissionsMethod.invoke(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION);
+                        builder.setMessage("Abbiamo bisogno della posizione per guidarti nell'esperienza.");
+                        builder.setPositiveButton(android.R.string.ok, null);
+                        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
 
-                    @TargetApi(23)
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        try {
+                            @TargetApi(23)
+                            @Override
+                            public void onDismiss(DialogInterface dialog) {
+                                try {
+                                    requestPermissionsMethod.invoke(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION);
+                                } catch (Exception e) {
 
-                            requestPermissionsMethod.invoke(activity, new String[]{Manifest.permission.BLUETOOTH_SCAN}, PERMISSION_REQUEST_BLUETOOTH_SCAN);
-                        } catch (Exception e) {
+                                }
 
-                        }
+                            }
+
+                        });
+
                     }
-
-                });
-                builder.show();
-
-
-            } else {
-                requestPermissionsMethod.invoke(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION);
-                final AlertDialog.Builder builder = new AlertDialog.Builder(cordova.getContext());
-                builder.setTitle("STEP FuturAbility District");
-                builder.setMessage("Abbiamo bisogno della posizione per guidarti nell'esperienza.");
-                builder.setPositiveButton(android.R.string.ok, null);
-                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-
-                    @TargetApi(23)
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        try {
-                            requestPermissionsMethod.invoke(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION);
-                        } catch (Exception e) {
-
-                        }
-
-                    }
-
-                });
-                builder.show();
-
-                // do something for phones running an SDK before 14
-
-            }
+                    builder.show();
+                }
+            });
 
         } catch (final IllegalAccessException e) {
             Log.w(TAG, "IllegalAccessException while checking for ACCESS_COARSE_LOCATION:", e);
