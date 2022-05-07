@@ -439,7 +439,7 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 
                     if (Build.VERSION.SDK_INT >= 31) {
                         // Do something for android 12 and above
-                        builder.setMessage("Abbiamo bisogno di scansionare i beacon per guidarti nell'esperienza.");
+                        builder.setMessage("Abbiamo bisogno della posizione e di scansionare i beacon per guidarti nell'esperienza.");
                         builder.setPositiveButton(android.R.string.ok, null);
                         builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
 
@@ -448,7 +448,7 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
                             public void onDismiss(DialogInterface dialog) {
                                 try {
 
-                                    requestPermissionsMethod.invoke(activity, new String[]{Manifest.permission.BLUETOOTH_SCAN}, PERMISSION_REQUEST_BLUETOOTH_SCAN);
+                                    requestPermissionsMethod.invoke(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.BLUETOOTH_SCAN}, PERMISSION_REQUEST_BLUETOOTH_SCAN);
                                 } catch (Exception e) {
 
                                 }
