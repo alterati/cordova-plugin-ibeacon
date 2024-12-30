@@ -1,9 +1,10 @@
 repositories{
     jcenter()
+    mavenCentral()
 }
 
 dependencies {
-    implementation 'org.altbeacon:android-beacon-library:2.20.7'
+    implementation 'org.altbeacon:android-beacon-library:2.20.3'
 }
 
 android {
